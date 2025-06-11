@@ -27,7 +27,7 @@ public class GameSelect : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.B))
         {
-            SceneManager.LoadScene("Battle");
+            SceneManager.LoadScene("Online");
         }
 
 

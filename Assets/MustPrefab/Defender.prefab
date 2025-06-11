@@ -118,6 +118,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &811119950360615669
 GameObject:
   m_ObjectHideFlags: 0
@@ -274,6 +277,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &2320989620905691397
 GameObject:
   m_ObjectHideFlags: 0
@@ -392,6 +398,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &2498504993331528068
 GameObject:
   m_ObjectHideFlags: 0
@@ -510,6 +519,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &7479612809247915910
 GameObject:
   m_ObjectHideFlags: 0
@@ -628,6 +640,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &8404039690072556879
 GameObject:
   m_ObjectHideFlags: 0
@@ -746,6 +761,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}
 --- !u!1 &8407448869760820158
 GameObject:
   m_ObjectHideFlags: 0
@@ -864,3 +882,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 263cc761208fb97458cb14ddc8c17c67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  moveSpeed: 3
+  moveRadius: 4
+  ball: {fileID: 0}

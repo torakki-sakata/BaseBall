@@ -51,7 +51,7 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
-        highScoreKey = "HighScore_" + SceneManager.GetActiveScene().name; // シーンごとのキー
+        highScoreKey = "HighScore_" + SceneManager.GetActiveScene().name;
         LoadHighScore();
         UpdateScoreText();
         HideAllFeedbackTexts();
@@ -125,7 +125,7 @@ public class ScoreManager : MonoBehaviour
         if (hitText != null)
         {
             hitText.enabled = true;
-            hitText.text = "Hit!";
+            hitText.text = "ヒット!";
         }
     }
 
@@ -134,7 +134,7 @@ public class ScoreManager : MonoBehaviour
         if (twoBaseHitText != null)
         {
             twoBaseHitText.enabled = true;
-            twoBaseHitText.text = "TwoBase!!";
+            twoBaseHitText.text = "ツーベース!!";
         }
     }
 
@@ -143,7 +143,7 @@ public class ScoreManager : MonoBehaviour
         if (threeBaseHitText != null)
         {
             threeBaseHitText.enabled = true;
-            threeBaseHitText.text = "ThreeBase!!!";
+            threeBaseHitText.text = "スリーベース!!!";
         }
     }
 
@@ -152,7 +152,7 @@ public class ScoreManager : MonoBehaviour
         if (homeRunText != null)
         {
             homeRunText.enabled = true;
-            homeRunText.text = "HomeRun!!!";
+            homeRunText.text = "ホームラン!!!!";
         }
     }
 
@@ -161,7 +161,7 @@ public class ScoreManager : MonoBehaviour
         if (outText != null)
         {
             outText.enabled = true;
-            outText.text = "Out";
+            outText.text = "アウト";
         }
     }
 
@@ -170,7 +170,7 @@ public class ScoreManager : MonoBehaviour
         if (faulText != null)
         {
             faulText.enabled = true;
-            faulText.text = "Faul";
+            faulText.text = "ファウル";
         }
     }
 
@@ -179,7 +179,7 @@ public class ScoreManager : MonoBehaviour
         if (straikText != null)
         {
             straikText.enabled = true;
-            straikText.text = "Straik";
+            straikText.text = "ストライク";
         }
     }
 
@@ -188,7 +188,7 @@ public class ScoreManager : MonoBehaviour
         if (doubleOutText != null)
         {
             doubleOutText.enabled = true;
-            doubleOutText.text = "DoubleOut";
+            doubleOutText.text = "ダブルプレー";
         }
     }
 
@@ -196,12 +196,12 @@ public class ScoreManager : MonoBehaviour
     {
         if (scoreText != null)
         {
-            scoreText.text = "Score: " + $"{score}";
+            scoreText.text = "スコア: " + $"{score}";
         }
 
         if (highScoreText != null)
         {
-            highScoreText.text = "HighScore: " + $"{highScore}";
+            highScoreText.text = "ハイスコア: " + $"{highScore}";
         }
     }
     
@@ -230,10 +230,10 @@ public class ScoreManager : MonoBehaviour
         score = 0;
 
         if (scoreText != null)
-            scoreText.text = "Score: 0";
+            scoreText.text = "スコア: 0";
 
         if (highScoreText != null)
-            highScoreText.text = "High Score: " + highScore.ToString();
+            highScoreText.text = "ハイスコア: " + highScore.ToString();
     }
 
      public void HideAllFeedbackTexts()

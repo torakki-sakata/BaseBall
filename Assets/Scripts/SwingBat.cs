@@ -2,7 +2,9 @@ using UnityEngine;
 
 public class SwingBat : MonoBehaviour
 {
-    private float rotationSpeed = 15f;
+    private float rotationSpeed = 14f;
+    private float defaultRotationSpeed = 14f;
+    private float fullSwingSpeed = 20f;
     private float currentRotation = 0f;
     private float maxRotation = 360f;
 
@@ -14,8 +16,10 @@ public class SwingBat : MonoBehaviour
     private float minY;
     private float maxY;
     private float initialY;
-
     private Rigidbody batRigidbody;
+    private bool isFullSwing = false;
+    public GameObject SwingText;
+    public GameObject FullSwingText;
 
     void Start()
     {
@@ -36,25 +40,25 @@ public class SwingBat : MonoBehaviour
         initialY = transform.position.y;
         minY = initialY - 0.11f;
         maxY = initialY + 0.05f;
+        if (SwingText != null) SwingText.SetActive(true);
+        if (FullSwingText != null) FullSwingText.SetActive(false);
     }
 
     void Update()
     {
-        // 右バッター：左回転（反時計回り）でスイング
         if (Input.GetMouseButton(0) && currentRotation < maxRotation)
         {
             float rotateStep = Mathf.Min(rotationSpeed, maxRotation - currentRotation);
-            transform.Rotate(0, -rotateStep, 0); // 左回転
+            transform.Rotate(0, -rotateStep, 0);
             currentRotation += rotateStep;
         }
         else if (!Input.GetMouseButton(0) && currentRotation > 0)
         {
             float rotateStep = Mathf.Min(rotationSpeed, currentRotation);
-            transform.Rotate(0, rotateStep, 0); // 元に戻す
+            transform.Rotate(0, rotateStep, 0);
             currentRotation -= rotateStep;
         }
 
-        // バットの上下移動
         Vector3 position = transform.position;
         if (Input.GetKey(KeyCode.UpArrow) && position.y < maxY)
         {
@@ -70,11 +74,35 @@ public class SwingBat : MonoBehaviour
         {
             RotateBat(10);
         }
+
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.A))
+        {
+            Vector3 euler = transform.eulerAngles;
+            euler.y = 45f;
+            transform.eulerAngles = euler;
+            currentRotation = 0f;
+
+            Debug.Log("バットの角度をY=45にリセットしました。");
+
+            if (SwingText != null) SwingText.SetActive(true);
+            if (FullSwingText != null) FullSwingText.SetActive(false);
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Z))
+        {
+            isFullSwing = !isFullSwing;
+            rotationSpeed = isFullSwing ? fullSwingSpeed : defaultRotationSpeed;
+
+            if (SwingText != null) SwingText.SetActive(!isFullSwing);
+            if (FullSwingText != null) FullSwingText.SetActive(isFullSwing);
+
+            Debug.Log($"フルスイングモード: {(isFullSwing ? "ON" : "OFF")}");
+        }
     }
 
     private void RotateBat(float angle)
     {
-        transform.Rotate(0, -angle, 0); // 左回転
+        transform.Rotate(0, -angle, 0);
         Debug.Log($"バットを{-angle}度回転しました。");
     }
 
@@ -94,14 +122,12 @@ public class SwingBat : MonoBehaviour
             Vector3 contactPoint = collision.contacts[0].point;
             Vector3 batCenter = transform.position;
             Vector3 hitDirection = (contactPoint - batCenter).normalized;
-
-            // 右バッター用の回転方向ベクトルを -transform.right に変更
             Vector3 batAngularVelocity = -transform.right * Mathf.Deg2Rad * rotationSpeed;
             Vector3 velocityAtContact = Vector3.Cross(batAngularVelocity, (contactPoint - batCenter));
             Vector3 combinedDirection = (velocityAtContact + hitDirection).normalized;
             float calculatedForce = baseForce * velocityAtContact.magnitude;
-
             ballRigidbody.AddForce(combinedDirection * calculatedForce, ForceMode.Impulse);
+
             Debug.Log($"打ち出し方向: {combinedDirection}, 力: {calculatedForce}");
         }
     }

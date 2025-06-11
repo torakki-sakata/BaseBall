@@ -16,6 +16,7 @@ TagManager:
   - Out
   - Ground
   - None
+  - HR2
   layers:
   - Default
   - TransparentFX

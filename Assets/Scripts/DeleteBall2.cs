@@ -4,25 +4,40 @@ public class DeleteBall2 : MonoBehaviour
 {
     private Rigidbody rig;
     private ShootBall2 shooter;
+    private CameraController cameraController;
+    public MoveDefender[] defenders;
 
     void Start()
     {
         rig = GetComponent<Rigidbody>();
         shooter = GetComponent<ShootBall2>();
+        cameraController = Camera.main.GetComponent<CameraController>();
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "Bat")
+        string tag = collision.gameObject.tag;
+
+        if (tag == "Bat")
         {
             rig.constraints &= ~RigidbodyConstraints.FreezePositionY;
+            cameraController?.StartFollowingBall();
+            foreach (MoveDefender defender in defenders)
+            {
+                defender?.OnBallHitBat();
+            }
         }
 
-        if (collision.gameObject.tag != "Ground" && collision.gameObject.tag != "Bat")
+        if (tag != "Ground" && tag != "Bat")
         {
+            if (tag == "Hit" || tag == "Faul" || tag == "2B" || tag == "3B" ||
+                tag == "HR" || tag == "Straik" || tag == "DoubleOut" || tag == "Out")
+            {
+                cameraController?.ResetCamera();
+            }
             rig.velocity = Vector3.zero;
             rig.angularVelocity = Vector3.zero;
-            
+
             float randomY = Random.Range(0.15f, 0.35f);
             transform.position = new Vector3(20.95f, randomY, -0.07f);
 
@@ -35,7 +50,12 @@ public class DeleteBall2 : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("ShootBall が見つかりません。");
+                Debug.LogWarning("ShootBall2 が見つかりません。");
+            }
+
+            foreach (MoveDefender defender in defenders)
+            {
+                defender?.OnBallReset();
             }
         }
     }

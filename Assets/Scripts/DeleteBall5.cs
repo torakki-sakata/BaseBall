@@ -1,51 +1,62 @@
 using UnityEngine;
-using Fusion;
-using System.Linq;
 
 public class DeleteBall5 : MonoBehaviour
 {
-    private Ball ball;
-    private static readonly Vector3 resetPosition = new Vector3(20.95001f, 0.1999969f, -0.07f);
+    private Rigidbody rig;
+    private ShootBall4 shooter;
+    private CameraController cameraController;
+    public MoveDefender[] defenders;
 
     void Start()
     {
-        ball = GetComponent<Ball>();
-
-        if (ball == null) Debug.LogError("Ball コンポーネントが見つかりません！");
+        rig = GetComponent<Rigidbody>();
+        shooter = GetComponent<ShootBall4>();
+        cameraController = Camera.main.GetComponent<CameraController>();
     }
 
-    private void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter(Collision collision)
     {
-        if (ball == null || !ball.Object.HasStateAuthority) return;
-
         string tag = collision.gameObject.tag;
-        int points = tag switch
-        {
-            "Hit" => 100,
-            "2B" => 200,
-            "3B" => 300,
-            "HR" => 500,
-            "Foul" or "Faul" => 10,
-            "Strike" or "Straik" => 0,
-            "Out" => -50,
-            "DoubleOut" => -100,
-            _ => int.MinValue
-        };
 
-        if (points != int.MinValue)
+        if (tag == "Bat")
         {
-            var score = FindObjectsOfType<Score>().FirstOrDefault(s => s.Object.HasStateAuthority);
-            if (score != null)
+            rig.constraints &= ~RigidbodyConstraints.FreezePositionY;
+            cameraController?.StartFollowingBall();
+            foreach (MoveDefender defender in defenders)
             {
-                score.RequestAddScore(points);
-                score.RequestAddPitch(); // 投球数も加算（上記のタグなら全て対象）
+                defender?.OnBallHitBat();
+            }
+        }
+
+        if (tag != "Ground" && tag != "Bat")
+        {
+            if (tag == "Hit" || tag == "Faul" || tag == "2B" || tag == "3B" ||
+                tag == "HR" || tag == "Straik" || tag == "DoubleOut" || tag == "Out")
+            {
+                cameraController?.ResetCamera();
+            }
+            rig.velocity = Vector3.zero;
+            rig.angularVelocity = Vector3.zero;
+
+            float randomY = Random.Range(0.15f, 0.35f);
+            transform.position = new Vector3(20.95f, randomY, -0.07f);
+
+            rig.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+
+            if (shooter != null)
+            {
+                shooter.ResetShoot();
+                shooter.RegisterBallFinished();
+            }
+            else
+            {
+                Debug.LogWarning("ShootBall4 が見つかりません。");
             }
 
-            ball.Rb.velocity = Vector3.zero;
-            ball.Rb.angularVelocity = Vector3.zero;
-            ball.transform.position = resetPosition;
-            ball.transform.rotation = Quaternion.identity;
-            ball.Rb.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotation;
+            foreach (MoveDefender defender in defenders)
+            {
+                defender?.OnBallReset();
+            }
         }
     }
 }

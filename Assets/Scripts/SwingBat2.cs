@@ -3,20 +3,21 @@ using UnityEngine;
 public class SwingBat2 : MonoBehaviour
 {
     private float rotationSpeed = 15f;
+    private float defaultRotationSpeed = 15f;
+    private float fullSwingSpeed = 20f;
     private float currentRotation = 0f;
     private float maxRotation = 360f;
-
     public float baseForce = 5000000f;
     private float collisionCooldown = 0.2f;
     private float lastCollisionTime = -10f;
-
-    // バットの上下移動に関する設定
     public float verticalSpeed = 10f;
     private float minY;
     private float maxY;
     private float initialY;
-
     private Rigidbody batRigidbody;
+    private bool isFullSwing = false;
+    public GameObject SwingText;
+    public GameObject FullSwingText;
 
     void Start()
     {
@@ -34,29 +35,27 @@ public class SwingBat2 : MonoBehaviour
             Debug.LogWarning("Batオブジェクトが見つかりません。");
         }
 
-        // 初期Y座標を基準に上下移動範囲を設定
         initialY = transform.position.y;
         minY = initialY - 0.11f;
         maxY = initialY + 0.05f;
+        if (SwingText != null) SwingText.SetActive(true);
+        if (FullSwingText != null) FullSwingText.SetActive(false);
     }
 
     void Update()
     {
-        // 左打者なので逆回転（右回り）
         if (Input.GetMouseButton(0) && currentRotation < maxRotation)
         {
             float rotateStep = Mathf.Min(rotationSpeed, maxRotation - currentRotation);
-            transform.Rotate(0, rotateStep, 0); // 右回転
+            transform.Rotate(0, rotateStep, 0);
             currentRotation += rotateStep;
         }
         else if (!Input.GetMouseButton(0) && currentRotation > 0)
         {
             float rotateStep = Mathf.Min(rotationSpeed, currentRotation);
-            transform.Rotate(0, -rotateStep, 0); // 元に戻す
+            transform.Rotate(0, -rotateStep, 0);
             currentRotation -= rotateStep;
         }
-
-        // 上下キーでバットを上下移動
         Vector3 position = transform.position;
         if (Input.GetKey(KeyCode.UpArrow) && position.y < maxY)
         {
@@ -68,10 +67,32 @@ public class SwingBat2 : MonoBehaviour
         }
         transform.position = position;
 
-        // 手動回転（デバッグ用）
         if (Input.GetKeyDown(KeyCode.A))
         {
             RotateBat(10);
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.A))
+        {
+            Vector3 euler = transform.eulerAngles;
+            euler.y = 90f;
+            transform.eulerAngles = euler;
+            currentRotation = 0f;
+            Debug.Log("バットの角度をY=90にリセットしました。");
+
+            if (SwingText != null) SwingText.SetActive(true);
+            if (FullSwingText != null) FullSwingText.SetActive(false);
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Z))
+        {
+            isFullSwing = !isFullSwing;
+            rotationSpeed = isFullSwing ? fullSwingSpeed : defaultRotationSpeed;
+
+            if (SwingText != null) SwingText.SetActive(!isFullSwing);
+            if (FullSwingText != null) FullSwingText.SetActive(isFullSwing);
+
+            Debug.Log($"フルスイングモード: {(isFullSwing ? "ON" : "OFF")}");
         }
     }
 
@@ -101,7 +122,6 @@ public class SwingBat2 : MonoBehaviour
             Vector3 velocityAtContact = Vector3.Cross(batAngularVelocity, (contactPoint - batCenter));
             Vector3 combinedDirection = (velocityAtContact + hitDirection).normalized;
             float calculatedForce = baseForce * velocityAtContact.magnitude;
-
             ballRigidbody.AddForce(combinedDirection * calculatedForce, ForceMode.Impulse);
             Debug.Log($"打ち出し方向: {combinedDirection}, 力: {calculatedForce}");
         }

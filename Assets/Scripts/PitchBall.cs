@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class PitchBall : MonoBehaviour
 {
     float timer = 0.0f;
     bool shootSwitch = true;
+    bool autoPitchTriggered = false;
 
     float initialForce = 50f;
     float initialForce2 = 35f;
@@ -20,6 +22,12 @@ public class PitchBall : MonoBehaviour
 
     private GameManager gameManager;
 
+    public GameObject pitcherObject;
+    private Renderer pitcherRenderer;
+    private Color originalColor;
+
+    public Text timerText;
+
     void Start()
     {
         rig = GetComponent<Rigidbody>();
@@ -28,60 +36,100 @@ public class PitchBall : MonoBehaviour
         rig.angularVelocity = Vector3.zero;
         shootSwitch = true;
 
-        gameManager = FindObjectOfType<GameManager>(); // ← これで取得
+        gameManager = FindObjectOfType<GameManager>();
+
+        if (pitcherObject != null)
+        {
+            pitcherRenderer = pitcherObject.GetComponent<Renderer>();
+            if (pitcherRenderer != null)
+            {
+                originalColor = pitcherRenderer.material.color;
+            }
+        }
     }
 
     void Update()
     {
         if (!shootSwitch || ballCount >= maxBalls) return;
 
-        if (Input.GetKeyDown(KeyCode.Alpha1)) // 速球
+        timer += Time.deltaTime;
+        if (timerText != null)
         {
-            rig.AddForce(initialForce, 0, 0, ForceMode.Impulse);
-            RegisterShot();
+            timerText.text = $"投球まで: {Mathf.Max(0, 5 - timer):0.0} 秒";
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) // 遅球
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            TriggerManualPitch(() => rig.AddForce(initialForce, 0, 0, ForceMode.Impulse), Color.green);
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+            TriggerManualPitch(() => rig.AddForce(initialForce2, 0, 0, ForceMode.Impulse), Color.green);
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+            TriggerManualPitch(() => StartCoroutine(ThrowSlider()), Color.green);
+        else if (Input.GetKeyDown(KeyCode.Alpha4))
+            TriggerManualPitch(() => StartCoroutine(ThrowShoot()), Color.green);
+        else if (Input.GetKeyDown(KeyCode.V))
+            TriggerManualPitch(() => StartCoroutine(ThrowInvisibleBall()), Color.red);
+        else if (Input.GetKeyDown(KeyCode.F))
+            TriggerManualPitch(() => StartCoroutine(ThrowFireball()), Color.red);
+        else if (Input.GetKeyDown(KeyCode.I))
+            TriggerManualPitch(() => StartCoroutine(ThrowIllusionBall()), Color.red);
+        else if (Input.GetKeyDown(KeyCode.S))
+            TriggerManualPitch(() => StartCoroutine(ThrowStopBall()), Color.red);
+
+        if (timer >= 5f && !autoPitchTriggered)
         {
-            rig.AddForce(initialForce2, 0, 0, ForceMode.Impulse);
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha3)) // スライダー
-        {
-            StartCoroutine(ThrowSlider());
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.Alpha4)) // シュート
-        {
-            StartCoroutine(ThrowShoot());
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.V)) // 消える魔球
-        {
-            StartCoroutine(ThrowInvisibleBall());
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.F)) // 火の玉ストレート
-        {
-            StartCoroutine(ThrowFireball());
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.I)) // 幻惑ボール
-        {
-            StartCoroutine(ThrowIllusionBall());
-            RegisterShot();
-        }
-        else if (Input.GetKeyDown(KeyCode.S)) // ストップボール
-        {
-            StartCoroutine(ThrowStopBall());
-            RegisterShot();
+            autoPitchTriggered = true;
+
+            int random = Random.Range(1, 5); // 1〜4（速球・遅球・スライダー・シュート）
+            switch (random)
+            {
+                case 1:
+                    TriggerManualPitch(() => rig.AddForce(initialForce, 0, 0, ForceMode.Impulse), Color.yellow);
+                    break;
+                case 2:
+                    TriggerManualPitch(() => rig.AddForce(initialForce2, 0, 0, ForceMode.Impulse), Color.yellow);
+                    break;
+                case 3:
+                    TriggerManualPitch(() => StartCoroutine(ThrowSlider()), Color.yellow);
+                    break;
+                case 4:
+                    TriggerManualPitch(() => StartCoroutine(ThrowShoot()), Color.yellow);
+                    break;
+            }
         }
     }
 
-    void RegisterShot()
+    void TriggerManualPitch(System.Action pitchAction, Color color)
+    {
+        if (!shootSwitch) return;
+
+        ChangePitcherColor(color);
+        StartCoroutine(DelayedThrow(pitchAction));
+    }
+
+    IEnumerator DelayedThrow(System.Action throwAction)
     {
         shootSwitch = false;
+        yield return new WaitForSeconds(1.0f);
+        throwAction.Invoke();
+        timer = 0f;
+        autoPitchTriggered = false;
     }
 
+    void ChangePitcherColor(Color color)
+    {
+        if (pitcherRenderer != null)
+        {
+            pitcherRenderer.material.color = color;
+        }
+    }
+
+    void ResetPitcherColor()
+    {
+        if (pitcherRenderer != null)
+        {
+            pitcherRenderer.material.color = originalColor;
+        }
+    }
 
     IEnumerator ThrowSlider()
     {
@@ -122,19 +170,17 @@ public class PitchBall : MonoBehaviour
     IEnumerator ThrowIllusionBall()
     {
         rig.AddForce(initialForce, 0, 0, ForceMode.Impulse);
+        isInvisible = true;
         float elapsed = 0f;
-        bool toRight = true;
-
-        while (elapsed < 4.1f)
+        float blinkInterval = 0.2f;
+        while (isInvisible && elapsed < 4.0f)
         {
-            yield return new WaitForSeconds(0.1f);
-            rig.velocity = Vector3.zero;
-            yield return new WaitForSeconds(0.01f);
-            float angle = toRight ? curveForce : -curveForce;
-            rig.AddForce(initialForce * 0.15f, 0, angle, ForceMode.Impulse);
-            toRight = !toRight;
-            elapsed += 0.11f;
+            rend.enabled = !rend.enabled;
+            yield return new WaitForSeconds(blinkInterval);
+            elapsed += blinkInterval;
         }
+        rend.enabled = true;
+        isInvisible = false;
     }
 
     IEnumerator ThrowStopBall()
@@ -161,8 +207,8 @@ public class PitchBall : MonoBehaviour
             tag == "DoubleOut" || tag == "Out")
         {
             ballCount++;
+            ResetPitcherColor();
 
-            // GameManager に通知
             if (gameManager != null)
             {
                 gameManager.BallThrown();
@@ -186,7 +232,9 @@ public class PitchBall : MonoBehaviour
         {
             shootSwitch = true;
             timer = 0.0f;
+            autoPitchTriggered = false;
         }
+
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.HideAllFeedbackTexts();
@@ -198,6 +246,8 @@ public class PitchBall : MonoBehaviour
         ballCount = 0;
         shootSwitch = true;
         timer = 0f;
+        autoPitchTriggered = false;
+
         rig.velocity = Vector3.zero;
         rig.angularVelocity = Vector3.zero;
 
@@ -211,6 +261,7 @@ public class PitchBall : MonoBehaviour
         rend.enabled = true;
         isInvisible = false;
 
+        ResetPitcherColor();
         ResetShoot();
     }
 

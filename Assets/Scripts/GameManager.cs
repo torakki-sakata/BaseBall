@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DelayedGameEnd()
     {
-        yield return new WaitForSeconds(3.0f);  // 3秒の待機
+        yield return new WaitForSeconds(1.0f);  // 3秒の待機
         ProcessEndOfHalfInning();
         EndGame();
     }

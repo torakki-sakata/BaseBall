@@ -1,181 +1,247 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Fusion;
-
-public class Score : NetworkBehaviour
+using UnityEngine.SceneManagement;
+public class Score : MonoBehaviour
 {
-    [Networked] public int TotalScore { get; set; }
-    [Networked] public int PitchCount { get; set; }
-    [Networked] public int Score1 { get; set; }
+    public static Score Instance;
 
-    [Networked] public int InningNumber { get; set; } = 1;
-    [Networked] public bool IsTopInning { get; set; } = true;
+    private int score = 0;
+    private int highScore = 0;
+    public Text scoreText;
+    public Text highScoreText;
+    public Text hitText;
+    private float hitDisplayTime = 1.5f;
+    private float hitTimer = 0f;
+    public Text outText;
+    private float outDisplayTime = 1.5f;
+    private float outTimer = 0f;
+    public Text twoBaseHitText;
+    private float twoBaseHitDisplayTime = 1.5f;
+    private float twoBaseHitTimer = 0f;
+    public Text threeBaseHitText;
+    private float threeBaseHitDisplayTime = 1.5f;
+    private float threeBaseHitTimer = 0f;
+    public Text homeRunText;
+    private float homeRunDisplayTime = 1.5f;
+    private float homeRunTimer = 0f;
+    public Text faulText;
+    private float faulDisplayTime = 1.5f;
+    private float faulTimer = 0f;
+    public Text straikText;
+    private float straikDisplayTime = 1.5f;
+    private float straikTimer = 0f;
+    public Text doubleOutText;
+    private float doubleOutTime = 1.5f;
+    private float doubleOutTimer = 0f;
+    private string highScoreKey;
 
-    private Text scoreText;
-    private Text pitchCountText;
-    private Text feedbackText;
-    private Text changeText;
-    private Text inningText;
-
-    public event System.Action OnPitchLimitReached;
-
-    public override void Spawned()
+    void Awake()
     {
-        scoreText = GameObject.Find("ScoreText")?.GetComponent<Text>();
-        pitchCountText = GameObject.Find("PitchCountText")?.GetComponent<Text>();
-        feedbackText = GameObject.Find("FeedbackText")?.GetComponent<Text>();
-        changeText = GameObject.Find("ChangeText")?.GetComponent<Text>();
-        inningText = GameObject.Find("InningText")?.GetComponent<Text>();
-
-        UpdateUIAll();
-    }
-
-    public void RequestAddScore(int points)
-    {
-        if (Object.HasStateAuthority)
+        if (Instance == null)
         {
-            RPC_AddScore(points);
-        }
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_AddPitch()
-    {
-        PitchCount++;
-        UpdatePitchCountUI();
-
-        if (PitchCount >= 10)
-        {
-            FinalizeHalfInning();
-            OnPitchLimitReached?.Invoke();
-        }
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RPC_AddScore(int points)
-    {
-        TotalScore += points;
-        UpdateScoreUI();
-        ShowFeedback(points);
-    }
-
-    private void FinalizeHalfInning()
-    {
-        Score1 += TotalScore;
-        TotalScore = 0;
-        PitchCount = 0;
-
-        UpdateScoreUI();
-        UpdatePitchCountUI();
-
-        // 表裏切替
-        if (IsTopInning)
-        {
-            IsTopInning = false;
+            Instance = this;
         }
         else
         {
-            IsTopInning = true;
-            InningNumber++;
+            Destroy(gameObject);
         }
-
-        UpdateInningUI();
-        ShowChangeText("攻守交替！");
-        OnInningChanged?.Invoke(IsTopInning);
     }
 
-    public event System.Action<bool> OnInningChanged;
-
-    private void UpdateUIAll()
+    void Start()
     {
-        UpdateScoreUI();
-        UpdatePitchCountUI();
-        UpdateInningUI();
+        highScoreKey = "HighScore_" + SceneManager.GetActiveScene().name;
+        LoadHighScore();
+        UpdateScoreText();
+        HideAllFeedbackTexts();
     }
 
-    private void UpdateScoreUI()
+    void Update()
+    {
+        UpdateDisplayTimer(hitText, ref hitTimer, hitDisplayTime);
+        UpdateDisplayTimer(outText, ref outTimer, outDisplayTime);
+        UpdateDisplayTimer(twoBaseHitText, ref twoBaseHitTimer, twoBaseHitDisplayTime);
+        UpdateDisplayTimer(threeBaseHitText, ref threeBaseHitTimer, threeBaseHitDisplayTime);
+        UpdateDisplayTimer(homeRunText, ref homeRunTimer, homeRunDisplayTime);
+        UpdateDisplayTimer(faulText, ref faulTimer, faulDisplayTime);
+        UpdateDisplayTimer(straikText, ref straikTimer, straikDisplayTime);
+        UpdateDisplayTimer(doubleOutText, ref doubleOutTimer, doubleOutTime);
+    }
+
+    private void UpdateDisplayTimer(Text text, ref float timer, float displayTime)
+    {
+        if (text != null && text.enabled)
+        {
+            timer += Time.deltaTime;
+            if (timer > displayTime)
+            {
+                text.enabled = false;
+                timer = 0f;
+            }
+        }
+    }
+
+    public void AddScore(int points)
+    {
+        score += points;
+
+        switch (points)
+        {
+            case 0:
+                ShowStraikText();
+                break;
+            case 10:
+                ShowFaulText();
+                break;
+            case 100:
+                ShowHitText();
+                break;
+            case 200:
+                ShowTwoBaseHitText();
+                break;
+            case 300:
+                ShowThreeBaseHitText();
+                break;
+            case 500:
+                ShowHomeRunText();
+                break;
+            case -50:
+                ShowOutText();
+                break;
+            case -100:
+                ShowdoubleOutText();
+                break;
+            default:
+                Debug.LogWarning("Unknown score added: " + points);
+                break;
+        }
+        UpdateHighScore();
+        UpdateScoreText();
+    }
+
+    private void ShowHitText()
+    {
+        if (hitText != null)
+        {
+            hitText.enabled = true;
+            hitText.text = "ヒット!";
+        }
+    }
+
+    private void ShowTwoBaseHitText()
+    {
+        if (twoBaseHitText != null)
+        {
+            twoBaseHitText.enabled = true;
+            twoBaseHitText.text = "ツーベース!!";
+        }
+    }
+
+    private void ShowThreeBaseHitText()
+    {
+        if (threeBaseHitText != null)
+        {
+            threeBaseHitText.enabled = true;
+            threeBaseHitText.text = "スリーベース!!!";
+        }
+    }
+
+    private void ShowHomeRunText()
+    {
+        if (homeRunText != null)
+        {
+            homeRunText.enabled = true;
+            homeRunText.text = "ホームラン!!!!";
+        }
+    }
+
+    public void ShowOutText()
+    {
+        if (outText != null)
+        {
+            outText.enabled = true;
+            outText.text = "アウト";
+        }
+    }
+
+    public void ShowFaulText()
+    {
+        if (faulText != null)
+        {
+            faulText.enabled = true;
+            faulText.text = "ファウル";
+        }
+    }
+
+    public void ShowStraikText()
+    {
+        if (straikText != null)
+        {
+            straikText.enabled = true;
+            straikText.text = "ストライク";
+        }
+    }
+
+    public void ShowdoubleOutText()
+    {
+        if (doubleOutText != null)
+        {
+            doubleOutText.enabled = true;
+            doubleOutText.text = "ダブルプレー";
+        }
+    }
+
+    private void UpdateScoreText()
     {
         if (scoreText != null)
         {
-            scoreText.text = $"Score: {TotalScore}";
+            scoreText.text = "スコア: " + $"{score}";
+        }
+
+        if (highScoreText != null)
+        {
+            highScoreText.text = "ハイスコア: " + $"{highScore}";
         }
     }
 
-    private void UpdatePitchCountUI()
+    private void UpdateHighScore()
     {
-        if (pitchCountText != null)
+        if (score > highScore)
         {
-            pitchCountText.text = $"投球数: {PitchCount}/10";
+            highScore = score;
+            SaveHighScore();
         }
     }
 
-    private void UpdateInningUI()
+    private void LoadHighScore()
     {
-        if (inningText != null)
-        {
-            string half = IsTopInning ? "表" : "裏";
-            inningText.text = $"{InningNumber}回{half}";
-        }
+        highScore = PlayerPrefs.GetInt(highScoreKey, 0);
     }
 
-    private void ShowFeedback(int points)
+    private void SaveHighScore()
     {
-        if (feedbackText != null)
-        {
-            feedbackText.text = GetFeedback(points);
-            CancelInvoke(nameof(ClearFeedback));
-            Invoke(nameof(ClearFeedback), 2f);
-        }
+        PlayerPrefs.SetInt(highScoreKey, highScore);
+        PlayerPrefs.Save();
     }
 
-    private void ClearFeedback()
+    public void ResetScore()
     {
-        if (feedbackText != null)
-        {
-            feedbackText.text = "";
-        }
+        score = 0;
+        if (scoreText != null)
+            scoreText.text = "スコア: 0";
+
+        if (highScoreText != null)
+            highScoreText.text = "ハイスコア: " + highScore.ToString();
     }
 
-    private string GetFeedback(int points)
+    public void HideAllFeedbackTexts()
     {
-        return points switch
-        {
-            500 => "ホームラン！",
-            300 => "スリーベースヒット！",
-            200 => "ツーベースヒット！",
-            100 => "ヒット！",
-            10 => "ファウル",
-            0 => "ストライク",
-            -50 => "アウト",
-            -100 => "ダブルアウト",
-            _ => ""
-        };
-    }
-
-    private void ShowChangeText(string message)
-    {
-        if (changeText != null)
-        {
-            changeText.text = message;
-            changeText.enabled = true;
-            CancelInvoke(nameof(HideChangeText));
-            Invoke(nameof(HideChangeText), 2f);
-        }
-    }
-
-    private void HideChangeText()
-    {
-        if (changeText != null)
-        {
-            changeText.enabled = false;
-        }
-    }
-
-    public void RequestAddPitch()
-    {
-        if (Object.HasStateAuthority)
-        {
-            RPC_AddPitch();
-        }
+        if (hitText != null) hitText.enabled = false;
+        if (outText != null) outText.enabled = false;
+        if (twoBaseHitText != null) twoBaseHitText.enabled = false;
+        if (threeBaseHitText != null) threeBaseHitText.enabled = false;
+        if (homeRunText != null) homeRunText.enabled = false;
+        if (faulText != null) faulText.enabled = false;
+        if (straikText != null) straikText.enabled = false;
+        if (doubleOutText != null) doubleOutText.enabled = false;
     }
 }

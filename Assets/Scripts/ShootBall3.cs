@@ -127,19 +127,20 @@ public class ShootBall3 : MonoBehaviour
     IEnumerator ThrowIllusionBall()
     {
         rig.AddForce(initialForce, 0, 0, ForceMode.Impulse);
-        float elapsed = 0f;
-        bool toRight = true;
+        isInvisible = true;
 
-        while (elapsed < 4.1f)
+        float elapsed = 0f;
+        float blinkInterval = 0.2f;
+
+        while (isInvisible && elapsed < 4.0f)
         {
-            yield return new WaitForSeconds(0.1f);
-            rig.velocity = Vector3.zero;
-            yield return new WaitForSeconds(0.01f);
-            float angle = toRight ? curveForce : -curveForce;
-            rig.AddForce(initialForce * 0.15f, 0, angle, ForceMode.Impulse);
-            toRight = !toRight;
-            elapsed += 0.11f;
+            rend.enabled = !rend.enabled;
+            yield return new WaitForSeconds(blinkInterval);
+            elapsed += blinkInterval;
         }
+
+        rend.enabled = true;  // 念のため可視状態で終了
+        isInvisible = false;
     }
 
     IEnumerator ThrowStopBall()
