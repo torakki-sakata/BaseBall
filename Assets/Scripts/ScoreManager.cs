@@ -6,7 +6,7 @@ public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance;
 
-    private int score = 0;
+    public int score = 0;
     private int highScore = 0;
     public Text scoreText;
     public Text highScoreText;
@@ -85,7 +85,6 @@ public class ScoreManager : MonoBehaviour
     public void AddScore(int points)
     {
         score += points;
-
         switch (points)
         {
             case 0:

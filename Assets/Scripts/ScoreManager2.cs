@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 public class ScoreManager2 : MonoBehaviour
 {
     public static ScoreManager2 Instance;
-
     private int score = 0;
     public Text scoreText;
     public Text hitText;

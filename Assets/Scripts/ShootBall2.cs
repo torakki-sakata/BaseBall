@@ -6,18 +6,20 @@ public class ShootBall2 : MonoBehaviour
     public GameObject EndText;
     public GameObject RestartButton;
     public GameObject TitleButton;
+    public AudioClip[] musicTracks;
+    public AudioClip endTrack;
+    public AudioClip throwSound;
+    private AudioSource audioSource;
+    private int currentTrackIndex = 0;
     float timer = 0.0f;
     float timeLimit = 1.0f;
     bool shootSwitch = true;
-
     float initialForce = 50f;
     float initialForce2 = 35f;
     float curveForce = 4f;
-
     int ballCount = 0;
     int maxBalls = 10;
     bool allBallsThrown = false;
-
     private Rigidbody rig;
 
     void Start()
@@ -26,10 +28,16 @@ public class ShootBall2 : MonoBehaviour
         rig.velocity = Vector3.zero;
         rig.angularVelocity = Vector3.zero;
         shootSwitch = true;
-
+        audioSource = GetComponent<AudioSource>();
         if (EndText) EndText.SetActive(false);
         if (RestartButton) RestartButton.SetActive(false);
         if (TitleButton) TitleButton.SetActive(false);
+        if (audioSource != null && musicTracks.Length > 0)
+        {
+            audioSource.clip = musicTracks[currentTrackIndex];
+            audioSource.loop = true;
+            audioSource.Play();
+        }
     }
 
     void Update()
@@ -63,11 +71,32 @@ public class ShootBall2 : MonoBehaviour
 
             timer = 0.0f;
             shootSwitch = false;
+            if (audioSource != null && throwSound != null)
+            {
+                audioSource.PlayOneShot(throwSound);
+            }
+
             ballCount++;
 
             if (ballCount >= maxBalls)
             {
                 allBallsThrown = true;
+            }
+        }
+                
+        if (!allBallsThrown && audioSource != null && musicTracks.Length > 0)
+        {
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                currentTrackIndex = (currentTrackIndex + 1) % musicTracks.Length;
+                audioSource.clip = musicTracks[currentTrackIndex];
+                audioSource.Play();
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                currentTrackIndex = (currentTrackIndex - 1 + musicTracks.Length) % musicTracks.Length;
+                audioSource.clip = musicTracks[currentTrackIndex];
+                audioSource.Play();
             }
         }
     }
@@ -102,26 +131,35 @@ public class ShootBall2 : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // 最後のボールが指定されたタグのいずれかに当たったらUIを表示
         if (allBallsThrown && IsTargetTag(collision.gameObject.tag))
         {
-            if (EndText) EndText.SetActive(true);
-            if (RestartButton) RestartButton.SetActive(true);
-            if (TitleButton) TitleButton.SetActive(true);
-
-            allBallsThrown = false; // UIは1回だけ表示
+            NormaChecker checker = FindObjectOfType<NormaChecker>();
+            if (checker != null && ScoreManager.Instance != null)
+            {
+                checker.currentScore = ScoreManager.Instance.score;
+                checker.CheckNormaClear();
+            }
+            if (audioSource != null && endTrack != null)
+            {
+                audioSource.clip = endTrack;
+                audioSource.loop = true;
+                audioSource.Play();
+            }
+            EndText?.SetActive(true);
+            RestartButton?.SetActive(true);
+            TitleButton?.SetActive(true);
+            allBallsThrown = false;
         }
     }
 
-    // 指定されたタグのいずれかかどうかをチェックするヘルパー関数
     private bool IsTargetTag(string tag)
     {
         return tag == "Hit" ||
-            tag == "Faul" ||    // ※必要に応じて "Foul" に修正
+            tag == "Faul" ||
             tag == "2B" ||
             tag == "3B" ||
             tag == "HR" ||
-            tag == "Straik" ||  // ※必要に応じて "Strike" に修正
+            tag == "Straik" ||
             tag == "DoubleOut" ||
             tag == "Out" ||
             tag == "None";
@@ -147,19 +185,17 @@ public class ShootBall2 : MonoBehaviour
         timer = 0f;
         rig.velocity = Vector3.zero;
         rig.angularVelocity = Vector3.zero;
-
-        if (EndText) EndText.SetActive(false);
-        if (RestartButton) RestartButton.SetActive(false);
-        if (TitleButton) TitleButton.SetActive(false);
-
-        if (ScoreManager.Instance != null)
-        {
-            ScoreManager.Instance.ResetScore();
-            ScoreManager.Instance.HideAllFeedbackTexts();
-        }
-
+        EndText?.SetActive(false);
+        RestartButton?.SetActive(false);
+        TitleButton?.SetActive(false);
+        ScoreManager.Instance?.ResetScore();
+        ScoreManager.Instance?.HideAllFeedbackTexts();
         allBallsThrown = false;
-
+        if (audioSource != null && musicTracks.Length > 0)
+        {
+            audioSource.clip = musicTracks[currentTrackIndex];
+            audioSource.Play();
+        }
         ResetShoot();
     }
 

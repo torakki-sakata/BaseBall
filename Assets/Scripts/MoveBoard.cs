@@ -1,57 +1,41 @@
 using UnityEngine;
-using System.Collections;
 
 public class MoveBoard : MonoBehaviour
 {
+    private bool movingUp;
+    private float moveSpeed;
+    private float movedDistance = 0.0f;
+    private float moveRange = 1.0f;
+    private Vector3 startPosition;
 
-    private bool d_positive;
-    private float x;
-    private float x_sum = 0.0f;
-    private float x_max = 2.0f;
-    private float player_x;
-    private float player_y;
-    private float player_z;
-
-    // Use this for initialization
     void Start()
     {
-        Vector3 player = GameObject.Find(transform.name).transform.position;
-        player_x = player.x;
-        player_y = player.y;
-        player_z = player.z;
-
-        d_positive = Random.Range(0, 2) == 0;
-        x = Random.Range(0.05f, 0.1f);
+        startPosition = transform.position;
+        movingUp = Random.Range(0, 2) == 0;
+        moveSpeed = Random.Range(0.05f, 0.1f);
     }
 
-    // Update is called once per frame
     void Update()
     {
-
-        if (d_positive && Mathf.Abs(x_sum) < x_max)
-        { // Move positive direction
-            transform.position = new Vector3(player_x + x_sum, player_y, player_z);
-            x_sum += x;
-        }
-        else if (!d_positive && Mathf.Abs(x_sum) < x_max)
-        { // Move negative direction
-            transform.position = new Vector3(player_x + x_sum, player_y, player_z);
-            x_sum -= x;
+        float delta = 15 * moveSpeed * Time.deltaTime;
+        if (movingUp)
+        {
+            movedDistance += delta;
+            if (movedDistance >= moveRange)
+            {
+                movedDistance = moveRange;
+                movingUp = false;
+            }
         }
         else
         {
-
-            if (d_positive)
+            movedDistance -= delta;
+            if (movedDistance <= -moveRange)
             {
-                x_sum -= x;
+                movedDistance = -moveRange;
+                movingUp = true;
             }
-            else
-            {
-                x_sum += x;
-            }
-            d_positive = !d_positive;
-
         }
-
+        transform.position = new Vector3(startPosition.x, startPosition.y + movedDistance, startPosition.z);
     }
 }

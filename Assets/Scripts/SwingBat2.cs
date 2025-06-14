@@ -75,7 +75,7 @@ public class SwingBat2 : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.A))
         {
             Vector3 euler = transform.eulerAngles;
-            euler.y = 90f;
+            euler.y = 0f;
             transform.eulerAngles = euler;
             currentRotation = 0f;
             Debug.Log("バットの角度をY=90にリセットしました。");

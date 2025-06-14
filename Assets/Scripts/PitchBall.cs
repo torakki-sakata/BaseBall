@@ -7,26 +7,22 @@ public class PitchBall : MonoBehaviour
     float timer = 0.0f;
     bool shootSwitch = true;
     bool autoPitchTriggered = false;
-
     float initialForce = 50f;
     float initialForce2 = 35f;
     float curveForce = 4f;
-
     int ballCount = 0;
     int maxBalls = 10;
     bool allBallsThrown = false;
-
     private Rigidbody rig;
     private Renderer rend;
     private bool isInvisible = false;
-
     private GameManager gameManager;
-
     public GameObject pitcherObject;
     private Renderer pitcherRenderer;
     private Color originalColor;
-
     public Text timerText;
+    private AudioSource audioSource;
+    public AudioClip pitchSound;
 
     void Start()
     {
@@ -35,7 +31,7 @@ public class PitchBall : MonoBehaviour
         rig.velocity = Vector3.zero;
         rig.angularVelocity = Vector3.zero;
         shootSwitch = true;
-
+        audioSource = GetComponent<AudioSource>();
         gameManager = FindObjectOfType<GameManager>();
 
         if (pitcherObject != null)
@@ -113,6 +109,10 @@ public class PitchBall : MonoBehaviour
         throwAction.Invoke();
         timer = 0f;
         autoPitchTriggered = false;
+        if (audioSource != null && pitchSound != null)
+        {
+            audioSource.PlayOneShot(pitchSound);
+        }
     }
 
     void ChangePitcherColor(Color color)

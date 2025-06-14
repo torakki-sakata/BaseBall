@@ -6,12 +6,19 @@ public class DeleteBall3 : MonoBehaviour
     private ShootBall3 shooter;
     private CameraController cameraController;
     public MoveDefender[] defenders;
+    public AudioClip hitSound;
+    private AudioSource audioSource;
 
     void Start()
     {
         rig = GetComponent<Rigidbody>();
         shooter = GetComponent<ShootBall3>();
         cameraController = Camera.main.GetComponent<CameraController>();
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
     }
 
     void OnCollisionEnter(Collision collision)
@@ -34,6 +41,10 @@ public class DeleteBall3 : MonoBehaviour
                 tag == "HR" || tag == "Straik" || tag == "DoubleOut" || tag == "Out")
             {
                 cameraController?.ResetCamera();
+                if (hitSound != null)
+                {
+                    audioSource.PlayOneShot(hitSound);
+                }
             }
             rig.velocity = Vector3.zero;
             rig.angularVelocity = Vector3.zero;

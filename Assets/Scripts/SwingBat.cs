@@ -78,7 +78,7 @@ public class SwingBat : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.A))
         {
             Vector3 euler = transform.eulerAngles;
-            euler.y = 45f;
+            euler.y = 0f;
             transform.eulerAngles = euler;
             currentRotation = 0f;
 

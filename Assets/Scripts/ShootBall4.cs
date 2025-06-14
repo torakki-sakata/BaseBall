@@ -7,23 +7,18 @@ public class ShootBall4 : MonoBehaviour
     public GameObject RestartButton;
     public GameObject TitleButton;
     public GameObject LoadingPanel;
-
     float timer = 0.0f;
     float timeLimit = 1.0f;
     bool shootSwitch = true;
-
     float initialForce = 50f;
     float initialForce2 = 35f;
     float curveForce = 4f;
-
     int ballCount = 0;
     int maxBalls = 10;
     bool allBallsThrown = false;
-
     private Rigidbody rig;
     private Renderer rend;
     private bool isInvisible = false;
-
     private bool isReadyToShoot = false;
     private bool canStartThrowing = false;
 

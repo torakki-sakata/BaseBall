@@ -6,6 +6,6 @@ public class MiniGameSceneManager : MonoBehaviour
 {
     public void OnClick()
     {
-        SceneManager.LoadScene("MiniGame");
+        SceneManager.LoadScene("OniHard");
     }
 }
